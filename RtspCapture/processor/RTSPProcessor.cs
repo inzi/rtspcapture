@@ -28,6 +28,9 @@ namespace RtspCapture.processor
 
         public void SetRawFramesSource(IRawFramesSource rawFramesSource)
         {
+
+            System.Diagnostics.Debug.WriteLine("SetRawFramesSource");
+
             if (_rawFramesSource != null)
             {
                 _rawFramesSource.FrameReceived -= OnFrameReceived;
@@ -63,6 +66,9 @@ namespace RtspCapture.processor
 
         private void OnFrameReceived(object sender, RawFrame rawFrame)
         {
+
+            System.Diagnostics.Debug.WriteLine("OnFrameReceived");
+
             if (!(rawFrame is RawVideoFrame rawVideoFrame))
                 return;
 

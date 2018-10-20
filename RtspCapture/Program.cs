@@ -1,4 +1,4 @@
-﻿using CommandLine;
+﻿//using CommandLine;
 using RtspClientSharp;
 using RtspClientSharp.RawFrames.Video;
 using System;
@@ -16,13 +16,13 @@ namespace RtspCapture
 
         public class Options
         {
-            [Option('u', "uri", Required = true, HelpText = "RTSP URI")]
+            //[Option('u', "uri", Required = true, HelpText = "RTSP URI")]
             public Uri Uri { get; set; }
 
-            [Option('p', "path", Required = true, HelpText = "Path where snapshots should be saved")]
+            //[Option('p', "path", Required = true, HelpText = "Path where snapshots should be saved")]
             public string Path { get; set; }
 
-            [Option('i', "interval", Required = false, HelpText = "Snapshots saving interval in seconds")]
+            //[Option('i', "interval", Required = false, HelpText = "Snapshots saving interval in seconds")]
             public int Interval { get; set; } = 5;
         }
         private static readonly RTSPProcessor rTSPProcessor = new RTSPProcessor();
@@ -34,25 +34,38 @@ namespace RtspCapture
         static void Main(string[] args)
         {
 
+            Options options = new Options();
+            options.Uri = new Uri("rtsp://admin:admin@10.50.1.85/1");
+            options.Interval = 5;
+            options.Path = @"c:\capture";
 
-            Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed(options =>
-                    {
-                        var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationtokensource = new CancellationTokenSource();
 
-                        //Task makeSnapshotsTask = MakeSnapshotsAsync(options, cancellationTokenSource.Token);
-                        StartCapture(options);
-                        Console.ReadKey();
+            //task makesnapshotstask = makesnapshotsasync(options, cancellationtokensource.token);
+            StartCapture(options);
+            Console.ReadKey();
 
-                        cancellationTokenSource.Cancel();
-                        //makeSnapshotsTask.Wait();
-                    })
-                    .WithNotParsed(options =>
-                    {
-                        Console.WriteLine("Usage example: MjpegSnapshotsMaker.exe " +
-                                      "-u rtsp://admin:123456@192.168.1.77:554/ucast/11 " +
-                                      "-p S:\\Temp");
-                    });
+            cancellationtokensource.Cancel();
+            //makesnapshotstask.wait();
+
+            //Parser.Default.ParseArguments<Options>(args)
+            //        .WithParsed(options =>
+            //        {
+            //            var cancellationTokenSource = new CancellationTokenSource();
+
+            //            //Task makeSnapshotsTask = MakeSnapshotsAsync(options, cancellationTokenSource.Token);
+            //            StartCapture(options);
+            //            Console.ReadKey();
+
+            //            cancellationTokenSource.Cancel();
+            //            //makeSnapshotsTask.Wait();
+            //        })
+            //        .WithNotParsed(options =>
+            //        {
+            //            Console.WriteLine("Usage example: MjpegSnapshotsMaker.exe " +
+            //                          "-u rtsp://admin:123456@192.168.1.77:554/ucast/11 " +
+            //                          "-p S:\\Temp");
+            //        });
 
             Console.WriteLine("Press any key to cancel");
             Console.ReadLine();
@@ -61,6 +74,8 @@ namespace RtspCapture
 
         private static void StartCapture(Options options)
         {
+
+            System.Diagnostics.Debug.WriteLine("Start Capture");
             //if (_rawFramesSource != null)
             //    return;
             if (!Directory.Exists(options.Path))
