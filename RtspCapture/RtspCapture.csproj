@@ -13,9 +13,21 @@
     <PackageReference Include="CommandLineParser" Version="2.3.0" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" />
   </ItemGroup>
-
+ <ItemGroup>
+    <Content Include="x86\avcodec-58.dll" />
+    <Content Include="x86\avdevice-58.dll" />
+    <Content Include="x86\avfilter-7.dll" />
+    <Content Include="x86\avformat-58.dll" />
+    <Content Include="x86\avutil-56.dll" />
+    <Content Include="x86\libffmpeghelper.dll" />
+    <Content Include="x86\postproc-55.dll" />
+    <Content Include="x86\swresample-3.dll" />
+    <Content Include="x86\swscale-5.dll" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RtspClientSharp\RtspClientSharp.csproj" />
   </ItemGroup>
-
+  <PropertyGroup>
+    <PostBuildEvent>xcopy $(ProjectDir)\x86\*.dll  $(TargetDir)  /Y /E /C /F</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -6,6 +6,8 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Drawing;
+using RtspCapture.processor;
+using RtspCapture.RawFramesReceiving;
 
 namespace RtspCapture
 {
@@ -23,28 +25,65 @@ namespace RtspCapture
             [Option('i', "interval", Required = false, HelpText = "Snapshots saving interval in seconds")]
             public int Interval { get; set; } = 5;
         }
+        private static readonly RTSPProcessor rTSPProcessor = new RTSPProcessor();
+        //private RawFramesSource _rawFramesSource;
 
+        public event EventHandler<string> StatusChanged;
+
+        //public IVideoSource VideoSource => _realtimeVideoSource;
         static void Main(string[] args)
         {
+
+
             Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(options =>
-                {
-                    var cancellationTokenSource = new CancellationTokenSource();
+                    .WithParsed(options =>
+                    {
+                        var cancellationTokenSource = new CancellationTokenSource();
 
-                    Task makeSnapshotsTask = MakeSnapshotsAsync(options, cancellationTokenSource.Token);
+                        //Task makeSnapshotsTask = MakeSnapshotsAsync(options, cancellationTokenSource.Token);
+                        StartCapture(options);
+                        Console.ReadKey();
 
-                    Console.ReadKey();
-
-                    cancellationTokenSource.Cancel();
-                    makeSnapshotsTask.Wait();
-                })
-                .WithNotParsed(options =>
-                {
-                    Console.WriteLine("Usage example: MjpegSnapshotsMaker.exe " +
+                        cancellationTokenSource.Cancel();
+                        //makeSnapshotsTask.Wait();
+                    })
+                    .WithNotParsed(options =>
+                    {
+                        Console.WriteLine("Usage example: MjpegSnapshotsMaker.exe " +
                                       "-u rtsp://admin:123456@192.168.1.77:554/ucast/11 " +
                                       "-p S:\\Temp");
-                });
+                    });
+
+            Console.WriteLine("Press any key to cancel");
+            Console.ReadLine();
+
         }
+
+        private static void StartCapture(Options options)
+        {
+            //if (_rawFramesSource != null)
+            //    return;
+            if (!Directory.Exists(options.Path))
+                Directory.CreateDirectory(options.Path);
+
+            int intervalMs = options.Interval * 1000;
+            int lastTimeSnapshotSaved = Environment.TickCount - intervalMs;
+
+            var connectionParameters = new ConnectionParameters(options.Uri);
+
+            RawFramesSource _rawFramesSource = new RawFramesSource(connectionParameters);
+            _rawFramesSource.ConnectionStatusChanged += ConnectionStatusChanged;
+
+            rTSPProcessor.SetRawFramesSource(_rawFramesSource);
+
+            _rawFramesSource.Start();
+        }
+
+        private static void ConnectionStatusChanged(object sender, string s)
+        {
+            //StatusChanged?.Invoke(this, s);
+        }
+
         private static async Task MakeSnapshotsAsync(Options options, CancellationToken token)
         {
             try
@@ -56,37 +95,38 @@ namespace RtspCapture
                 int lastTimeSnapshotSaved = Environment.TickCount - intervalMs;
 
                 var connectionParameters = new ConnectionParameters(options.Uri);
-                using (var rtspClient = new RtspClient(connectionParameters))
-                {
-                    rtspClient.FrameReceived += (sender, frame) =>
-                    {
+              
+                //using (var rtspClient = new RtspClient(connectionParameters))
+                //{
+                //    rtspClient.FrameReceived += (sender, frame) =>
+                //    {
 
-                        int ticksNow = Environment.TickCount;
+                //        int ticksNow = Environment.TickCount;
 
-                        if (Math.Abs(ticksNow - lastTimeSnapshotSaved) < intervalMs)
-                            return;
+                //        if (Math.Abs(ticksNow - lastTimeSnapshotSaved) < intervalMs)
+                //            return;
 
-                        lastTimeSnapshotSaved = ticksNow;
+                //        lastTimeSnapshotSaved = ticksNow;
 
-                        string snapshotName = frame.Timestamp.ToString("O").Replace(":", "_") + ".jpg";
-                        string path = Path.Combine(options.Path, snapshotName);
+                //        string snapshotName = frame.Timestamp.ToString("O").Replace(":", "_") + ".jpg";
+                //        string path = Path.Combine(options.Path, snapshotName);
 
-                        ArraySegment<byte> frameSegment = frame.FrameSegment;
+                //        ArraySegment<byte> frameSegment = frame.FrameSegment;
 
-                        var stream = new MemoryStream(frameSegment.Array, 0, frameSegment.Count);
+                //        //var stream = new MemoryStream(frameSegment.Array, 0, frameSegment.Count);
 
-                        Image image = Image.FromStream(stream);
+                //        //Image image = Image.FromStream(stream);
 
-                        image.Save($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
+                //        //image.Save($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
 
-                        Console.WriteLine($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
-                    };
+                //        Console.WriteLine($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
+                //    };
 
-                    Console.WriteLine("Connecting...");
-                    await rtspClient.ConnectAsync(token);
-                    Console.WriteLine("Receiving...");
-                    await rtspClient.ReceiveAsync(token);
-                }
+                //    Console.WriteLine("Connecting...");
+                //    await rtspClient.ConnectAsync(token);
+                //    Console.WriteLine("Receiving...");
+                //    await rtspClient.ReceiveAsync(token);
+                //}
             }
             catch (OperationCanceledException)
             {

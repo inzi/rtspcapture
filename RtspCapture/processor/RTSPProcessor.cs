@@ -71,29 +71,32 @@ namespace RtspCapture.processor
             if (!decoder.TryDecode(rawVideoFrame, out DecodedVideoFrameParameters decodedFrameParameters))
                 return;
 
-            long desiredSize = Interlocked.Read(ref _desiredSize);
+            //long desiredSize = (long)rawFrame. << 32 | (uint)height;
+
+            //long desiredSize = Interlocked.Read(ref _desiredSize);
 
             int targetWidth;
             int targetHeight;
 
             int bufferSize;
 
-            if (desiredSize == 0)
-            {
+            //if (desiredSize == 0)
+            //{
                 targetWidth = decodedFrameParameters.Width;
                 targetHeight = decodedFrameParameters.Height;
 
                 bufferSize = decodedFrameParameters.Height *
                              ImageUtils.GetStride(decodedFrameParameters.Width, PixelFormat.Bgr24);
-            }
-            else
-            {
-                targetWidth = (int)(desiredSize >> 32);
-                targetHeight = (int)desiredSize;
+            //}
+            //else
+            //{
+            //    targetWidth = (int)(desiredSize >> 32);
+            //    targetHeight = (int)desiredSize;
 
-                bufferSize = targetHeight *
-                             ImageUtils.GetStride(targetWidth, PixelFormat.Bgr24);
-            }
+            //    bufferSize = targetHeight *
+            //                 ImageUtils.GetStride(targetWidth, PixelFormat.Bgr24);
+            //}
+
 
             if (_decodedFrameBuffer.Length != bufferSize)
                 _decodedFrameBuffer = new byte[bufferSize];
