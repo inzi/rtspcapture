@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace RtspCapture.RawFramesDecoding.DecodedFrames
 {
@@ -24,6 +27,37 @@ namespace RtspCapture.RawFramesDecoding.DecodedFrames
             Height = height;
             Format = format;
             Stride = stride;
+        }
+
+        public Bitmap GetBitmap()
+        {
+            System.Drawing.Imaging.PixelFormat format;
+
+            switch (Format)
+            {
+                case PixelFormat.Bgr24:
+                    format = System.Drawing.Imaging.PixelFormat.Format24bppRgb;
+                    break;
+                case PixelFormat.Abgr32:
+                    format = System.Drawing.Imaging.PixelFormat.Format32bppArgb;
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported format");
+            }
+
+            var bitmap = new Bitmap(Width, Height, format);
+
+            var boundsRect = new Rectangle(0, 0, Width, Height);
+
+            BitmapData bmpData = bitmap.LockBits(boundsRect,
+                ImageLockMode.WriteOnly,
+                bitmap.PixelFormat);
+
+            IntPtr ptr = bmpData.Scan0;
+            Marshal.Copy(DecodedBytes.Array, DecodedBytes.Offset, ptr, DecodedBytes.Count);
+            bitmap.UnlockBits(bmpData);
+
+            return bitmap;
         }
     }
 }

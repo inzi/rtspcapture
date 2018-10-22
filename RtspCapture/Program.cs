@@ -1,11 +1,9 @@
 ﻿using CommandLine;
 using RtspClientSharp;
-using RtspClientSharp.RawFrames.Video;
 using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Drawing;
+using System.Drawing.Imaging;
 using RtspCapture.processor;
 using RtspCapture.RawFramesReceiving;
 
@@ -25,28 +23,11 @@ namespace RtspCapture
             [Option('i', "interval", Required = false, HelpText = "Snapshots saving interval in seconds")]
             public int Interval { get; set; } = 5;
         }
-        private static readonly RTSPProcessor rTSPProcessor = new RTSPProcessor();
-        //private RawFramesSource _rawFramesSource;
 
-        public event EventHandler<string> StatusChanged;
-
-        //public IVideoSource VideoSource => _realtimeVideoSource;
         static void Main(string[] args)
         {
-
-
             Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed(options =>
-                    {
-                        var cancellationTokenSource = new CancellationTokenSource();
-
-                        //Task makeSnapshotsTask = MakeSnapshotsAsync(options, cancellationTokenSource.Token);
-                        StartCapture(options);
-                        Console.ReadKey();
-
-                        cancellationTokenSource.Cancel();
-                        //makeSnapshotsTask.Wait();
-                    })
+                    .WithParsed(StartCapture)
                     .WithNotParsed(options =>
                     {
                         Console.WriteLine("Usage example: MjpegSnapshotsMaker.exe " +
@@ -55,14 +36,11 @@ namespace RtspCapture
                     });
 
             Console.WriteLine("Press any key to cancel");
-            Console.ReadLine();
-
+            Console.ReadKey(false);
         }
 
         private static void StartCapture(Options options)
         {
-            //if (_rawFramesSource != null)
-            //    return;
             if (!Directory.Exists(options.Path))
                 Directory.CreateDirectory(options.Path);
 
@@ -71,70 +49,31 @@ namespace RtspCapture
 
             var connectionParameters = new ConnectionParameters(options.Uri);
 
-            RawFramesSource _rawFramesSource = new RawFramesSource(connectionParameters);
-            _rawFramesSource.ConnectionStatusChanged += ConnectionStatusChanged;
-
-            rTSPProcessor.SetRawFramesSource(_rawFramesSource);
-
-            _rawFramesSource.Start();
-        }
-
-        private static void ConnectionStatusChanged(object sender, string s)
-        {
-            //StatusChanged?.Invoke(this, s);
-        }
-
-        private static async Task MakeSnapshotsAsync(Options options, CancellationToken token)
-        {
-            try
+            var rawFramesSource = new RawFramesSource(connectionParameters);
+            rawFramesSource.ConnectionStatusChanged += (sender, status) => Console.WriteLine(status);
+            var decodedFrameSource = new DecodedFrameSource();
+            decodedFrameSource.FrameReceived += (sender, frame) =>
             {
-                if (!Directory.Exists(options.Path))
-                    Directory.CreateDirectory(options.Path);
+                int ticksNow = Environment.TickCount;
 
-                int intervalMs = options.Interval * 1000;
-                int lastTimeSnapshotSaved = Environment.TickCount - intervalMs;
+                if (Math.Abs(ticksNow - lastTimeSnapshotSaved) < intervalMs)
+                    return;
 
-                var connectionParameters = new ConnectionParameters(options.Uri);
-              
-                //using (var rtspClient = new RtspClient(connectionParameters))
-                //{
-                //    rtspClient.FrameReceived += (sender, frame) =>
-                //    {
+                lastTimeSnapshotSaved = ticksNow;
 
-                //        int ticksNow = Environment.TickCount;
+                Bitmap bitmap = frame.GetBitmap();
 
-                //        if (Math.Abs(ticksNow - lastTimeSnapshotSaved) < intervalMs)
-                //            return;
+                string snapshotName = frame.Timestamp.ToString("O").Replace(":", "_") + ".jpg";
+                string path = Path.Combine(options.Path, snapshotName);
 
-                //        lastTimeSnapshotSaved = ticksNow;
+                bitmap.Save(path, ImageFormat.Jpeg);
 
-                //        string snapshotName = frame.Timestamp.ToString("O").Replace(":", "_") + ".jpg";
-                //        string path = Path.Combine(options.Path, snapshotName);
+                Console.WriteLine($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
+            };
 
-                //        ArraySegment<byte> frameSegment = frame.FrameSegment;
+            decodedFrameSource.SetRawFramesSource(rawFramesSource);
 
-                //        //var stream = new MemoryStream(frameSegment.Array, 0, frameSegment.Count);
-
-                //        //Image image = Image.FromStream(stream);
-
-                //        //image.Save($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
-
-                //        Console.WriteLine($"[{DateTime.UtcNow}] Snapshot is saved to {snapshotName}");
-                //    };
-
-                //    Console.WriteLine("Connecting...");
-                //    await rtspClient.ConnectAsync(token);
-                //    Console.WriteLine("Receiving...");
-                //    await rtspClient.ReceiveAsync(token);
-                //}
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
+            rawFramesSource.Start();
         }
     }
 }

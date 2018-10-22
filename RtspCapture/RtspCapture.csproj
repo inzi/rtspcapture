@@ -33,6 +33,6 @@
     <ProjectReference Include="..\RtspClientSharp\RtspClientSharp.csproj" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy $(ProjectDir)\x86\*.dll  $(TargetDir)  /Y /E /C /F</PostBuildEvent>
+    <PostBuildEvent>xcopy $(MSBuildProjectDirectory)\x86\*.dll  $(TargetDir)  /Y /E /C /F</PostBuildEvent>
   </PropertyGroup>
 </Project>

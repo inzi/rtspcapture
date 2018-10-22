@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 
 namespace RtspCapture.RawFramesDecoding.DecodedFrames
 {
@@ -12,5 +13,7 @@ namespace RtspCapture.RawFramesDecoding.DecodedFrames
         int Height { get; }
         PixelFormat Format { get; }
         int Stride { get; }
+
+        Bitmap GetBitmap();
     }
 }
