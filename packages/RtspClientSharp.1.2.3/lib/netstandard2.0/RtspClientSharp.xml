@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>RtspClientSharp</name>
+    </assembly>
+    <members>
+        <member name="P:RtspClientSharp.ConnectionParameters.ConnectionUri">
+            <summary>
+            Uri should start from "rtsp://" prefix for RTSP over TCP transport
+            and from "http://" for RTSP over HTTP tunneling
+            </summary>
+        </member>
+        <member name="P:RtspClientSharp.ConnectionParameters.RequiredTracks">
+            <summary>
+            Should be used to get only one video/audio track from device.
+            Important notes: some devices won't connect in that case (SETUP request could not be processed)
+            </summary>
+        </member>
+        <member name="M:RtspClientSharp.IRtspClient.ConnectAsync(System.Threading.CancellationToken)">
+            <summary>
+            Connect to endpoint and start RTSP session
+            </summary>
+            <exception cref="T:System.OperationCanceledException"></exception>
+            <exception cref="T:System.Security.Authentication.InvalidCredentialException"></exception>
+            <exception cref="T:RtspClientSharp.Rtsp.RtspClientException"></exception>
+        </member>
+        <member name="M:RtspClientSharp.IRtspClient.ReceiveAsync(System.Threading.CancellationToken)">
+            <summary>
+            Receive frames. 
+            Should be called after successful connection to endpoint or <exception cref="T:System.InvalidOperationException"></exception> will be thrown
+            </summary>
+            <exception cref="T:System.OperationCanceledException"></exception>
+            <exception cref="T:RtspClientSharp.Rtsp.RtspClientException"></exception>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:RtspClientSharp.RtspClient.ConnectAsync(System.Threading.CancellationToken)">
+            <summary>
+            Connect to endpoint and start RTSP session
+            </summary>
+            <exception cref="T:System.OperationCanceledException"></exception>
+            <exception cref="T:System.Security.Authentication.InvalidCredentialException"></exception>
+            <exception cref="T:RtspClientSharp.Rtsp.RtspClientException"></exception>
+        </member>
+        <member name="M:RtspClientSharp.RtspClient.ReceiveAsync(System.Threading.CancellationToken)">
+            <summary>
+            Receive frames. 
+            Should be called after successful connection to endpoint or InvalidOperationException will be thrown
+            </summary>
+            <exception cref="T:System.OperationCanceledException"></exception>
+            <exception cref="T:RtspClientSharp.Rtsp.RtspClientException"></exception>
+            <exception cref="T:System.InvalidOperationException"></exception>
+        </member>
+        <member name="M:RtspClientSharp.RtspClient.Dispose">
+            <summary>
+            Clean up unmanaged resources
+            </summary>
+        </member>
+        <member name="T:RtspClientSharp.Rtsp.Authentication.MD5.ABCDStruct">
+            <summary>
+                Simple struct for the (a,b,c,d) which is used to compute the mesage digest.
+            </summary>
+        </member>
+        <member name="T:RtspClientSharp.Utils.ChunksArray">
+            <summary>
+            The main idea of that class is to reduce the amount of references to arrays for GC
+            </summary>
+        </member>
+        <member name="T:RtspClientSharp.Utils.SimpleHybridLock">
+            <summary>
+            From CLR via C#, fourth edition
+            </summary>
+        </member>
+    </members>
+</doc>
